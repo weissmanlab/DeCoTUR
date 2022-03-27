@@ -1,0 +1,24 @@
+Package: decotur
+Type: Package
+Title: DeCoTUR (Detecting Coevolving Traits Using Relatives)
+Version: 0.1.0
+Author: Rohan Mehta
+Maintainer: Rohan Mehta <rsmeht4@emory.edu>
+Description: This package provides functions to compute the coevolution score, a method to detect interactions betweeen binary traits (such as SNPs, or the presence/absence of accessory genes in a bacterial genome).
+    Additional helper functions are also provided. Preprint: https://www.biorxiv.org/content/10.1101/2022.03.14.484367v1
+License: Open-source
+Encoding: UTF-8
+LazyData: true
+Depends: 
+        progress,
+        ggplot2
+Imports:
+        igraph,
+        stats,
+        utils,
+        pbapply
+RoxygenNote: 7.1.2
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr
