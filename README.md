@@ -12,7 +12,7 @@ To install DeCoTUR, run
 
 `library(devtools)`
 
-`install_github("rohansmehta/decotur")`
+`install_github("weissmanlab/decotur")`
 
 ## Using DeCoTUR
 The primary function you would want to use is
