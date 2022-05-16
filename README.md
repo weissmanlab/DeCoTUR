@@ -42,7 +42,7 @@ For the distance matrix, each row and column is a sample. For example
 | SampleN | 0.001 | 0.0015 | ... | 0 |
 
 The other inputs to this function are: A) a method for determining the close-pair cutoff. This can be 
-1. Auto. I don't recommend this. It looks at the pairwise distance distribution and tries to find a cutoff that encompasses the first peak. Very complicated, not worth it, only in here as a curiosity and if someone wants to be "super rigorous" about determining the cutoff.
+1. Auto. It looks at the pairwise distance distribution and tries to find a cutoff that encompasses the first peak. Not recommended for first time use.
 2. Distance. You give it a distance cutoff, it uses it.
 3. Fraction. You give it a fraction (i.e. I want the 5% closest pairs, so my fraction is 0.05).
 4. Fixed Number. I.e. I want 500 close pairs.
