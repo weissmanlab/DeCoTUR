@@ -4,6 +4,10 @@ For questions please email rsmeht4@emory.edu.
 ## Detecting Coevolving Traits Using Relatives
 This package computes the "coevolution score" presented in [this preprint](https://www.biorxiv.org/content/10.1101/2022.03.14.484367v1).
 
+## Updates
+6/1/2022 - Changed the significance test. It is not longer based on Fisher's exact test, but it is now based on a Poisson Binomial distribution. This change better reflects the fact that not every closely related pair has an equivalent chance of producing a signal.
+6/1/2022 - Fixed an issue in an internal function which wasn't handling block sizes properly.
+
 ## Installation
 This package is implemented in R. If you don't have `devtools`, then run
 `install.packages('devtools')`.
