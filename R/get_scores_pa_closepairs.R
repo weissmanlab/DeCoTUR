@@ -9,13 +9,17 @@
 #'@param blocksize The number of traits to consider at once in the computation. Changing this number may help speed up the computation. Try 100 first.
 #'@param verbose TRUE to print progress, FALSE to not print progress.
 #'@param version 'speed' or 'memory' optimized version. 'speed' recommended; if you run into memory issues then decrease the blocksize
+#'@param withpval Computes unweighted scores for p-value calculation if TRUE.
 #'@export
 #'@examples
 #'get_scores_pa_closepairs(pa_matrix, close_pairs, classweights, 100, T)
 
-get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, blocksize, verbose, version){
+get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, blocksize, verbose, version, withpval){
   if(blocksize > dim(pa_matrix)[1]){
     stop("Block size is larger than the number of traits")
+  }
+  if(withpval){
+    uweights <- rep(1, length(classweights))
   }
   gene_names <- rownames(pa_matrix)
   nrows <- dim(pa_matrix)[1]
@@ -24,9 +28,9 @@ get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, block
   leftover <- nrows %% blocksize
   if(leftover > 0){
     padding <- blocksize - leftover
-    padrows <- matrix(rep(0, padding * ncols), nrow = padding, ncol = ncols)
+    padrows <- matrix(rep(0, padding * (ncols)), nrow = padding, ncol = dim(pa_matrix)[2]) # I keep screwing this line up
     rownames(padrows) <- rep('padding', padding)
-    colnames(padrows) <- colnames(pa_matrix)
+    colnames(padrows) <- c(colnames(pa_matrix))
     pa_matrix <- rbind(pa_matrix, padrows)
     numblocks <- numblocks + 1
   }
@@ -39,14 +43,14 @@ get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, block
     pb$tick(0)
   }
   for(i in 1:numblocks){
-    #print(i)
+    print(i)
     starti <- (i-1)*blocksize+1
     endi <- i*blocksize
     rangei <- starti:endi
     ind1snp1 <- pa_matrix[rangei, close_pairs[,1]]
     ind2snp1 <- pa_matrix[rangei, close_pairs[,2]]
     for(j in i:numblocks){
-      #print(j)
+      print(j)
       startj <- (j-1)*blocksize+1
       endj <- j*blocksize
       rangej <- startj:endj
@@ -67,26 +71,37 @@ get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, block
         test4 <- snpdiffmat2[pairindices[2,],] > 0
         pos_test <- test12 * test3 * test4
         snpscoremats <- as.numeric(pos_test %*% classweights)
+        if(withpval){
+          us <- as.numeric(pos_test %*% uweights)
+        }
         testn12 <- test1 != test2
         neg_test <- testn12 * test3 * test4
         snpscorematd <- as.numeric(neg_test %*% classweights)
+        if(withpval){
+          ud <- as.numeric(neg_test %*% uweights)
+        }
       } else if(version == 'memory'){
         snpscoremats <- pbapply(pairindices, 2, function(x){return((as.numeric(snpdiffmat1[x[1],] == snpdiffmat2[x[2],] & snpdiffmat1[x[1],] > 0 & snpdiffmat2[x[2],] > 0)) %*% classweights)})
         snpscorematd <- pbapply(pairindices, 2, function(x){return((as.numeric(snpdiffmat1[x[1],] != snpdiffmat2[x[2],] & snpdiffmat1[x[1],] > 0 & snpdiffmat2[x[2],] > 0)) %*% classweights)})
+        if(withpval){
+          us <- pbapply(pairindices, 2, function(x){return((as.numeric(snpdiffmat1[x[1],] == snpdiffmat2[x[2],] & snpdiffmat1[x[1],] > 0 & snpdiffmat2[x[2],] > 0)) %*% uweights)})
+          ud <- pbapply(pairindices, 2, function(x){return((as.numeric(snpdiffmat1[x[1],] != snpdiffmat2[x[2],] & snpdiffmat1[x[1],] > 0 & snpdiffmat2[x[2],] > 0)) %*% uweights)})
+        }
       } else {
         stop('Incorrect version. Should be speed or memory')
       }
       snp1 <- rownames(ind1snp1)[pairindices[1,]]
       snp2 <- rownames(ind1snp2)[pairindices[2,]]
       score <- pmax(snpscoremats, snpscorematd)
-      scoredat <- rbind(scoredat, data.frame(snp1, snp2, snpscoremats, snpscorematd, score, stringsAsFactors = F))
+      if(!withpval){
+        us <- NA
+        ud <- NA
+      }
+      scoredat <- rbind(scoredat, data.frame(snp1, snp2, snpscoremats, snpscorematd, score, us, ud, stringsAsFactors = F))
     }
     if(verbose){pb$tick()}
   }
-  names(scoredat) <- c('Trait1', 'Trait2', 'PositiveAssociation', 'NegativeAssociation', 'Score')
+  names(scoredat) <- c('Trait1', 'Trait2', 'PositiveAssociation', 'NegativeAssociation', 'Score', 'UnweightedPositive', 'UnweightedNegative')
   scoredat <- subset(scoredat, Trait1 %in% gene_names & Trait2 %in% gene_names)
   return(scoredat)
 }
-
-
-
