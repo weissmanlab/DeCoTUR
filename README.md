@@ -11,7 +11,8 @@ This package computes the "coevolution score" presented in [this preprint](https
 
 ## Installation
 This package is implemented in R. If you don't have `devtools`, then run
-`install.packages('devtools')`.
+`install.packages('devtools')`. If you don't have an updated Rtools installation, install it from 
+`https://cran.r-project.org/bin/windows/Rtools/` or `https://www.r-project.org/nosvn/winutf8/ucrt3/`.
 
 To install DeCoTUR, run
 
