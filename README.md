@@ -41,10 +41,10 @@ For the distance matrix, each row and column is a sample. For example
 | | Sample1 | Sample2 | ... | SampleN |
 | ----- | ------- | ------- | --- | -------- |
 | Sample1 | 0 | 0.001 | ... | 1.01 |
-| Sample2 | 2.03 | 0 | ... | 0.023 |
+| Sample2 | 0.001 | 0 | ... | 0.023 |
 | Sample3 | 6.07 | 1.97 | ... | 1.45 |
 | ... | ... | ... | ... | ... |
-| SampleN | 0.001 | 0.0015 | ... | 0 |
+| SampleN | 1.01 | 0.023 | ... | 0 |
 
 The other inputs to this function are: A) a method for determining the close-pair cutoff. This can be 
 1. Auto. It looks at the pairwise distance distribution and tries to find a cutoff that encompasses the first peak. Not recommended for first time use.
@@ -59,10 +59,10 @@ So for the closepair_params part of the argument, this example would need
 
 B) A block size for computation. If you divide up the traits you want to evaluate into blocks, the computation goes much faster. Provided that you had a lot of traits to being with. If not, set this number to the number of traits.
 
-C) Whether or not you want to downweight bushes. I downweight them and say it's a good idea. You might not want to, for whatever reason.
+C) Whether or not you want to downweight bushes to avoid a single bush dominating the score.
 
-D) Whether or not you want p values with your results. I would recommend keeping this at the default of TRUE; unless it really slows down your analysis, it won't hurt.
+D) Whether or not you want p values with your results. Default is TRUE, though my current implementation of this is fairly slow so you might want to set it to FALSE initially. I'm currently working on speeding it up using R packages that can handle very large matrices.
 
 E) Whether or not you want text output for progress. I would recommend keeping this at the default of TRUE.
 
-F) Whether or not you want to run the relatively "speed" optimized version or the relatively "memory" optimized version. In my experience, there is no reason to choose "memory" over "speed" so long as you have a small enough "blocksize", but the option is there in case you run into memory issues.
+F) Whether or not you want to run the relatively "speed" optimized version or the relatively "memory" optimized version. In my experience, there is no reason to choose "memory" over "speed" so long as you have a small enough "blocksize", but the option is there in case you run into memory issues. I am currently working on using R packages that can handle very large matrices to obviate the need for the "memory" option.
