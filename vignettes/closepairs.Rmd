@@ -1,0 +1,34 @@
+---
+title: "How to choose close pairs"
+author: "Rohan Mehta"
+date: "2022-12-22"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette describes the different ways you can choose the distance cutoff to determine close pairs in DeCoTUR. First, let's load the data.
+```{r}
+data(example_distance_matrix, package = "decotur")
+```
+One way to obtain a distance cutoff is to say: "I want the smallest 1% of pairwise distances". To do that, you use the following function: 
+
+```{r}
+library(ggplot2)
+closepairs <- decotur::get_closepairs_fraction(distance_matrix = distance_matrix, distance_fraction = 0.01, show_hist = T, verbose = T)
+```
+
+Another way to choose close pairs is to specify how many you want. There may be "ties" in this case. For example, let's say you want 500  close pairs. There are 475 close pairs with distance $< 0.001$ and 50 close pairs with distance $=0.002$, and none in between $0.001$ and $0.002$. Then to get 500 close pairs, you must set the distance cutoff to $0.002$ (which would yield 525 close pairs), and then randomly sample 500 of those without replacement. Thus, you need to specify a random seed in this function as well as the number of close pairs you want. 
+```{r}
+closepairs <- decotur::get_closepairs_fixednumber(distance_matrix = distance_matrix, number_close_pairs = 1000, seed = 784, show_hist = T, verbose = T)
+```
+
+Finally, you can also just specify a pairwise distance explicitly.  
+```{r}
+closepairs <- decotur::get_closepairs_distance(distance_matrix = distance_matrix, distance_cutoff = 0.0002, show_hist = T, verbose = T)
+```

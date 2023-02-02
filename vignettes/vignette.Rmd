@@ -1,0 +1,70 @@
+---
+title: "How to use DeCoTUR"
+author: "Rohan Mehta"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to use DeCoTUR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+To get started with DeCoTUR, we need to first acquire some data. There is an example distance matrix and an example trait matrix that came with this package in the "data" folder.
+```{r}
+data(example_distance_matrix, package = "decotur")
+data(example_trait_matrix, package = "decotur")
+```
+
+The first thing that we need to do is find samples that are closely related to each other. Trait differences between these pairs of samples will count towards the score. For demonstration purposes, here is a histogram of the pairwise distances with the top 500 close pairs to the left of the vertical line.
+
+```
+closepairs <- decotur::get_closepairs_fixednumber(distance_matrix, 5000, 1, T, T)
+```
+
+Actually computing the scores should be a one-liner:
+```{r}
+library(ggplot2)
+library(progress)
+library(PoissonBinomial)
+scores <- decotur::get_scores(pa_matrix = trait_matrix, distance_matrix = distance_matrix, closepair_method = 'fixednumber', closepair_params = list(500, 1, T), blocksize = 100, downweight = TRUE, withsig = TRUE, verbose = TRUE, version = 'speed')
+```
+
+## Analyzing the Results
+First, let's only keep the significant scores and remove the unannotated genes.
+```{r}
+library(stringr)
+tograph <- subset(scores, sig & !str_detect(scores$Trait1, 'group') & !str_detect(scores$Trait2, 'group'))
+```
+Now let's make a network and plot the results.
+```{r}
+library(ggraph)
+library(igraph)
+tograph$polarity <- tograph$PositiveAssociation > tograph$NegativeAssociation
+tograph$polarity <- factor(tograph$polarity, levels= c('TRUE', 'FALSE'),
+                           labels = c('Association', 'Dissociation'))
+graph_data_frame <- tograph[, c(1, 2, 5, 9)]
+g <- graph_from_data_frame(graph_data_frame, directed = F)
+gg <- ggraph(g, layout = 'fr') + geom_edge_link(aes(color = Score, linetype = polarity), width = 1) +
+  scale_edge_color_gradient(name = 'Interaction', low = 'gray80', high = 'black') +
+  scale_edge_linetype(name = 'Polarity') +
+  geom_node_label(aes(label = name), color = 'black', alpha = 0.7, repel = T) +
+  geom_node_point(size=3) +
+  coord_equal() + theme(legend.text.align = 0) +
+  guides(
+    fill = guide_legend(
+      override.aes = aes(label = "")
+    )
+  ) + 
+  theme_graph(base_family = 'Arial')
+```
+```{r, fig.show='hold', fig.width=20, fig.height=20, collapse=TRUE}
+gg
+```
+

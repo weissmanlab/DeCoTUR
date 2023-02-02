@@ -43,14 +43,14 @@ get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, block
     pb$tick(0)
   }
   for(i in 1:numblocks){
-    print(i)
+    #print(i)
     starti <- (i-1)*blocksize+1
     endi <- i*blocksize
     rangei <- starti:endi
     ind1snp1 <- pa_matrix[rangei, close_pairs[,1]]
     ind2snp1 <- pa_matrix[rangei, close_pairs[,2]]
     for(j in i:numblocks){
-      print(j)
+      #print(j)
       startj <- (j-1)*blocksize+1
       endj <- j*blocksize
       rangej <- startj:endj
@@ -105,3 +105,6 @@ get_scores_pa_closepairs <- function(pa_matrix, close_pairs, classweights, block
   scoredat <- subset(scoredat, Trait1 %in% gene_names & Trait2 %in% gene_names)
   return(scoredat)
 }
+
+
+

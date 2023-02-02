@@ -9,7 +9,7 @@
 #'
 #'@param pa_matrix A presence-absence matrix for the trait in question (i.e. gene, allele, phenotype, etc.). Rows are trait, columns are sample. Rownames should be trait names, colnames should be sample names.
 #'@param distance_matrix A distance matrix. Rownames and colnames should be sample names and should be in the same order as the columns in pa_matrix.
-#'@param closepair_method Either 'distance', 'fraction', 'fixednumber', or 'auto'.
+#'@param closepair_method Either 'distance', 'fraction', or 'fixednumber'.
 #'@param closepair_params A list. For 'distance', the distance cutoff and show_hist. For 'fraction', the fraction and show_hist. For 'fixednumber', the number of close pairs, a random seed, and show_hist. For 'auto', the which_valley, nbins, maxvalleyheight, and show_hist. verbose is inherited from the main function call.
 #'@param blocksize The number of traits to consider at once in the computation. Changing this number may help speed up the computation. Must be less than or equal to the number of traits.
 #'@param downweight TRUE to downweight bushes. Default TRUE.
@@ -21,6 +21,7 @@
 #'get_scores(pa_matrix, distance_matrix, 'fraction', list(0.1, TRUE), 10, TRUE, TRUE, TRUE)
 
 get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_params, blocksize, downweight = TRUE, withsig = TRUE, verbose = TRUE, version = 'speed'){
+  closepair_params <- list(1000,1,T)
   if(verbose){print('Starting function.')}
   if(closepair_method == 'distance'){
     if(length(closepair_params) != 2){
@@ -36,21 +37,12 @@ get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_p
     distance_fraction <- closepair_params[[1]]
     show_hist <- closepair_params[[2]]
     close_pairs <- get_closepairs_fraction(distance_matrix, distance_fraction, show_hist, verbose)
-  } else if(closepair_method == 'auto'){
-    if(length(closepair_params) != 4){
-      stop('Incorrect number of closepair_params. (Should be 4).')
-    }
-    which_valley <- closepair_params[[1]]
-    nbins <- closepair_params[[2]]
-    maxvalleyheight <- closepair_params[[3]]
-    show_hist <- closepair_params[[4]]
-    close_pairs <- get_closepairs_auto(distance_matrix, which_valley, nbins, maxvalleyheight, show_hist, verbose)
   } else if(closepair_method == 'fixednumber'){
     number_close_pairs <- closepair_params[[1]]
     seed <- closepair_params[[2]]
     show_hist <- closepair_params[[3]]
     close_pairs <- get_closepairs_fixednumber(distance_matrix, number_close_pairs, seed, show_hist, verbose)
-  } else{stop('Unidentified close pair method (should be one of: distance, fraction, fixednumber, auto).')}
+  } else{stop('Unidentified close pair method (should be one of: distance, fraction, fixednumber).')}
   if(verbose){
     print(paste0('Obtained ',  dim(close_pairs)[1], ' close pairs.'))
   }
@@ -62,7 +54,9 @@ get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_p
     class_weights <- rep(1, length(classes))
   }
   if(verbose){print('Obtained close pair class weights.')}
-  pa_matrix <- filter_snps_by_closepairs(pa_matrix, close_pairs)
+  pam <- filter_traits_by_closepairs(pa_matrix, close_pairs)
+  pa_matrix <- pam[[1]]
+  close_pairs <- pam[[2]]
   scores <- get_scores_pa_closepairs(pa_matrix, close_pairs, class_weights, blocksize, verbose, version, withsig)
   if(verbose){print('Obtained scores.')}
   if(withsig){
@@ -77,11 +71,13 @@ get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_p
     sum <- scores$UnweightedPositive + scores$UnweightedNegative
     m <- rep(1, dim(close_pairs)[1])
     ndpds <- dpds/sum(dpds)
+    ndpds[which(ndpds == 0)] <- min(ndpds[which(ndpds > 0)])/100
     # The null model is a Poisson Binomial with rate:
     # gene1_discordance*gene2_discordance*normalized close pair core distances^2
     # So I need a matrix where each column is a gene pair and each row is a close pair
     # wait I want to compare scores with an rpbinom parameter, so I want the transverse
     # I will have to double-check this, but right now I am just debugging the speed of this function
+    blocksize <- min(3000, dim(pa_matrix)[1])
     numblocks <- length(disc1) %/% blocksize
     leftover <- length(disc1) %% blocksize
     #t <- proc.time()
@@ -90,16 +86,24 @@ get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_p
       start <- (i-1)*blocksize+1
       end <- i*blocksize
       spbmat <- ( disc1[start:end] * disc2[start:end] ) %*% t(ndpds^2)
+      spbmat[which(is.na(spbmat))] <- 0
+      spbmat[which(is.nan(spbmat))] <- 0
+      spbmat[which(spbmat < 0)] <- 0
+      spbmat[which(spbmat > 1)] <- 1
       res <- c(res, apply(spbmat, 1, function(x){
-        PoissonBinomial::qpbinom(1-0.05/length(disc1), x, method = 'RefinedNormal')
+        qpbinom_modified(1-0.05/length(disc1), x, method = 'RefinedNormal')
       }))
     }
     if(leftover > 0){
       start <- i*blocksize + 1
       end <- length(disc1)
       spbmat <- ( disc1[start:end] * disc2[start:end] ) %*% t(ndpds^2)
+      spbmat[which(is.na(spbmat))] <- 0
+      spbmat[which(is.nan(spbmat))] <- 0
+      spbmat[which(spbmat < 0)] <- 0
+      spbmat[which(spbmat > 1)] <- 1
       res <- c(res, apply(spbmat, 1, function(x){
-        PoissonBinomial::qpbinom(1-0.05/length(disc1), x, method = 'RefinedNormal')
+        qpbinom_modified(1-0.05/length(disc1), x, method = 'RefinedNormal')
       }))
     }
     #print(proc.time() - t)
@@ -111,3 +115,4 @@ get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_p
   }
   return(scores)
 }
+
