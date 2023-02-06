@@ -65,7 +65,8 @@ get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_p
     if(verbose){print('Obtained discordance information.')}
     if(verbose){print('Computing significance')}
     dpds <- distance_matrix[close_pairs]
-    dpds[which(dpds < 0)] <- 1/(2*704782) # or whatever the value is
+    dpds <- as.numeric(dpds)
+    dpds[which(dpds < 0)] <- 1/(2*1000000)# hardcoded. apologies. shouldn't really matter.
     disc1 <- discdat$disc[match(scores$Trait1, discdat$trait)]
     disc2 <- discdat$disc[match(scores$Trait2, discdat$trait)]
     sum <- scores$UnweightedPositive + scores$UnweightedNegative
