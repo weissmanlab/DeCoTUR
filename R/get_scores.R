@@ -21,7 +21,6 @@
 #'get_scores(pa_matrix, distance_matrix, 'fraction', list(0.1, TRUE), 10, TRUE, TRUE, TRUE)
 
 get_scores <- function(pa_matrix, distance_matrix, closepair_method, closepair_params, blocksize, downweight = TRUE, withsig = TRUE, verbose = TRUE, version = 'speed'){
-  #closepair_params <- list(1000,1,T)
   if(verbose){print('Starting function.')}
   if(closepair_method == 'distance'){
     if(length(closepair_params) != 2){
