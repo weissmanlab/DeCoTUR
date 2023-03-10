@@ -27,9 +27,9 @@ To install DeCoTUR, run
 ## Using DeCoTUR
 The primary function you would want to use is
 
-`get_score`
+`get_scores`
 
-Everything else is a helper function. The function `get_score` has many arguments. The two most important are the presence-absence matrix and the distance matrix.
+Everything else is a helper function. The function `get_scores` has many arguments. The two most important are the presence-absence matrix and the distance matrix.
 
 For the presence-absence matrix, each row is a trait, and each column is a sample. For example
 
