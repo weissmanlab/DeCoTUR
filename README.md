@@ -2,7 +2,7 @@ For questions please email rsmeht4@emory.edu.
 
 # DeCoTUR
 ## Detecting Coevolving Traits Using Relatives
-This package computes the "coevolution score" presented in [this preprint](https://www.biorxiv.org/content/10.1101/2022.03.14.484367v1).
+This package computes the "coevolution score" presented in [this manuscript](https://link.springer.com/article/10.1186/s12859-023-05363-4).
 
 ## Updates
 3/7/2023 - Removed a line of debug code that I missed earlier.
