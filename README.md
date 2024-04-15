@@ -1,4 +1,4 @@
-For questions please email rsmeht4@emory.edu.
+For questions please email rohan.mehta@elmhurst.edu.
 
 # DeCoTUR
 ## Detecting Coevolving Traits Using Relatives
