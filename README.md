@@ -71,3 +71,8 @@ D) Whether or not you want p values with your results. Default is TRUE, though m
 E) Whether or not you want text output for progress. I would recommend keeping this at the default of TRUE.
 
 F) Whether or not you want to run the relatively "speed" optimized version or the relatively "memory" optimized version. In my experience, there is no reason to choose "memory" over "speed" so long as you have a small enough "blocksize", but the option is there in case you run into memory issues. I am currently working on using R packages that can handle very large matrices to obviate the need for the "memory" option.
+
+## Troubleshooting
+
+If you encounter the error: "PoissonBinomial.cpp:4:10: fatal error: fftw3.h: No such file or directory" upon installing the PoissonBinomial dependency on a Linux machine, this error can be resolved by first running 
+`sudo apt-get install libfftw3-dev`.
